@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/nav :: head('Policy Corpus — Fraud Agent')}"></head>
+<body>
+<nav th:replace="~{fragments/nav :: nav}"></nav>
+<div th:replace="~{fragments/nav :: alerts}"></div>
+
+<div class="container-fluid px-4">
+    <h2 class="mb-3">Banking Policy Corpus <small class="text-muted fs-6">(vector-indexed for RAG)</small></h2>
+
+    <form class="row g-2 mb-4" method="get" action="/policies">
+        <div class="col-md-6">
+            <input class="form-control" name="q" th:value="${query}"
+                   placeholder="Semantic search, e.g. 'impossible travel' or 'velocity limits'">
+        </div>
+        <div class="col-auto"><button class="btn btn-primary">Search</button></div>
+    </form>
+
+    <div th:if="${hits != null}" class="mb-4">
+        <h5>Search results</h5>
+        <div th:each="h : ${hits}" class="card mb-2">
+            <div class="card-body py-2">
+                <div class="d-flex justify-content-between">
+                    <strong><span th:text="${h.documentId}"></span> — <span th:text="${h.documentTitle}"></span></strong>
+                    <span class="badge bg-light text-dark">
+                        <span th:text="${h.section}"></span> · score
+                        <span th:text="${#numbers.formatDecimal(h.relevanceScore,1,3)}"></span>
+                    </span>
+                </div>
+                <div class="policy-excerpt text-muted" th:text="${h.excerpt}"></div>
+            </div>
+        </div>
+        <div th:if="${#lists.isEmpty(hits)}" class="text-muted">No matching sections.</div>
+        <hr>
+    </div>
+
+    <h5>Indexed sections</h5>
+    <div class="row g-2">
+        <div class="col-md-6" th:each="doc : ${corpus}">
+            <div class="card h-100">
+                <div class="card-body py-2">
+                    <div class="d-flex justify-content-between">
+                        <strong><span th:text="${doc.documentId}"></span> —
+                            <span th:text="${doc.documentTitle}"></span></strong>
+                        <span class="badge bg-light text-dark" th:text="${doc.section}"></span>
+                    </div>
+                    <div class="policy-excerpt text-muted" th:text="${doc.excerpt}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:replace="~{fragments/nav :: scripts}"></script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/nav :: head('Fraud Investigation Agent — Dashboard')}"></head>
+<body>
+<nav th:replace="~{fragments/nav :: nav}"></nav>
+<div th:replace="~{fragments/nav :: alerts}"></div>
+
+<div class="container-fluid px-4">
+    <h2 class="mb-4">Operations Dashboard</h2>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card"><div class="card-body">
+                <div class="text-muted small">Total Cases</div>
+                <div class="display-6" th:text="${totalCases}">0</div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card border-warning"><div class="card-body">
+                <div class="text-muted small">Pending Review</div>
+                <div class="display-6 text-warning" th:text="${pendingReview}">0</div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card" style="border-left-color:#198754"><div class="card-body">
+                <div class="text-muted small">Resolved</div>
+                <div class="display-6 text-success" th:text="${resolved}">0</div>
+            </div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card" style="border-left-color:#0dcaf0"><div class="card-body">
+                <div class="text-muted small">Awaiting Info</div>
+                <div class="display-6 text-info" th:text="${awaitingInfo}">0</div>
+            </div></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Recent Cases</span>
+            <a class="btn btn-sm btn-primary" href="/cases/new">+ New Dispute</a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead><tr>
+                    <th>ID</th><th>Transaction</th><th>Amount</th><th>Merchant</th>
+                    <th>Reason</th><th>Status</th><th>Opened</th><th></th>
+                </tr></thead>
+                <tbody>
+                <tr th:each="c : ${recentCases}">
+                    <td th:text="${c.id}">1</td>
+                    <td class="font-monospace" th:text="${c.transactionId}">TXN-1</td>
+                    <td th:text="${@fmt.money(c.amount, c.currency)}">100 USD</td>
+                    <td th:text="${c.merchantId}">M-1</td>
+                    <td th:text="${@fmt.enumLabel(c.disputeReason)}">Unauthorized</td>
+                    <td><span class="badge" th:classappend="${@fmt.statusBadge(c.status.name())}"
+                              th:text="${@fmt.enumLabel(c.status)}">Pending</span></td>
+                    <td th:text="${@fmt.instant(c.createdAt)}">—</td>
+                    <td><a class="btn btn-sm btn-outline-primary" th:href="@{/cases/{id}(id=${c.id})}">Open</a></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(recentCases)}">
+                    <td colspan="8" class="text-center text-muted py-4">No cases yet — file the first dispute.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script th:replace="~{fragments/nav :: scripts}"></script>
+</body>
+</html>

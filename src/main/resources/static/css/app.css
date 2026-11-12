@@ -1,0 +1,51 @@
+body {
+    background-color: #f5f7fa;
+}
+
+.risk-bar {
+    height: 10px;
+    border-radius: 5px;
+}
+
+.evidence-details {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.78rem;
+    color: #555;
+}
+
+.audit-timeline {
+    border-left: 3px solid #dee2e6;
+    padding-left: 1.25rem;
+}
+
+.audit-timeline .audit-event {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.audit-timeline .audit-event::before {
+    content: "";
+    position: absolute;
+    left: -1.55rem;
+    top: 0.35rem;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: #0d6efd;
+}
+
+.policy-excerpt {
+    font-size: 0.82rem;
+    max-height: 9rem;
+    overflow-y: auto;
+    white-space: pre-wrap;
+}
+
+.transcript-msg {
+    font-size: 0.85rem;
+    white-space: pre-wrap;
+}
+
+.stat-card {
+    border-left: 4px solid #0d6efd;
+}

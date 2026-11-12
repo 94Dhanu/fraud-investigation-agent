@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/nav :: head('Cases — Fraud Agent')}"></head>
+<body>
+<nav th:replace="~{fragments/nav :: nav}"></nav>
+<div th:replace="~{fragments/nav :: alerts}"></div>
+
+<div class="container-fluid px-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Fraud Dispute Cases</h2>
+        <a class="btn btn-primary" href="/cases/new">+ New Dispute</a>
+    </div>
+
+    <form class="row g-2 mb-3" method="get" action="/cases">
+        <div class="col-auto">
+            <select name="status" class="form-select">
+                <option value="">All statuses</option>
+                <option th:each="s : ${statuses}" th:value="${s.name()}"
+                        th:selected="${s.name() == selectedStatus}"
+                        th:text="${@fmt.enumLabel(s)}"></option>
+            </select>
+        </div>
+        <div class="col-auto"><button class="btn btn-outline-secondary">Filter</button></div>
+    </form>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead><tr>
+                    <th>ID</th><th>Transaction</th><th>Account</th><th>Amount</th>
+                    <th>Merchant</th><th>Reason</th><th>Status</th><th>Opened</th><th></th>
+                </tr></thead>
+                <tbody>
+                <tr th:each="c : ${cases}">
+                    <td th:text="${c.id}">1</td>
+                    <td class="font-monospace" th:text="${c.transactionId}">TXN-1</td>
+                    <td th:text="${c.accountId}">ACC</td>
+                    <td th:text="${@fmt.money(c.amount, c.currency)}">—</td>
+                    <td th:text="${c.merchantId} + ' (' + ${c.merchantCategory} + ')'">M</td>
+                    <td th:text="${@fmt.enumLabel(c.disputeReason)}">—</td>
+                    <td><span class="badge" th:classappend="${@fmt.statusBadge(c.status.name())}"
+                              th:text="${@fmt.enumLabel(c.status)}">—</span></td>
+                    <td th:text="${@fmt.instant(c.createdAt)}">—</td>
+                    <td><a class="btn btn-sm btn-outline-primary" th:href="@{/cases/{id}(id=${c.id})}">Open</a></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(cases)}">
+                    <td colspan="9" class="text-center text-muted py-4">No cases found.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script th:replace="~{fragments/nav :: scripts}"></script>
+</body>
+</html>

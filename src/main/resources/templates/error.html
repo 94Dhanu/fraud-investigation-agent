@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/nav :: head('Error — Fraud Agent')}"></head>
+<body>
+<nav th:replace="~{fragments/nav :: nav}"></nav>
+<div class="container">
+    <div class="alert alert-danger mt-5">
+        <h4>Something went wrong</h4>
+        <p th:text="${error}">Error</p>
+        <p class="small text-muted" th:text="${message}"></p>
+        <a class="btn btn-outline-danger" href="/dashboard">Back to dashboard</a>
+    </div>
+</div>
+<script th:replace="~{fragments/nav :: scripts}"></script>
+</body>
+</html>

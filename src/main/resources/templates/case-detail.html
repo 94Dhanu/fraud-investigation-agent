@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/nav :: head('Case Detail — Fraud Agent')}"></head>
+<body>
+<nav th:replace="~{fragments/nav :: nav}"></nav>
+<div th:replace="~{fragments/nav :: alerts}"></div>
+
+<div class="container-fluid px-4" th:if="${c != null}">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Case #<span th:text="${c.id}"></span>
+            <span class="badge fs-6" th:classappend="${@fmt.statusBadge(c.status.name())}"
+                  th:text="${@fmt.enumLabel(c.status)}"></span>
+        </h2>
+        <form method="post" th:action="@{/cases/{id}/reinvestigate(id=${c.id})}"
+              th:if="${c.status.name() != 'RESOLVED'}">
+            <button class="btn btn-outline-primary">↻ Re-investigate</button>
+        </form>
+    </div>
+
+    <div class="row g-3">
+        <!-- CASE FACTS -->
+        <div class="col-lg-5">
+            <div class="card mb-3">
+                <div class="card-header">Case Facts</div>
+                <div class="card-body">
+                    <table class="table table-sm mb-0">
+                        <tr><th>Transaction</th><td class="font-monospace" th:text="${c.transactionId}"></td></tr>
+                        <tr><th>Amount</th><td th:text="${@fmt.money(c.amount, c.currency)}"></td></tr>
+                        <tr><th>Occurred</th><td th:text="${@fmt.instant(c.occurredAt)}"></td></tr>
+                        <tr><th>Card</th><td class="font-monospace" th:text="${c.cardFingerprint}"></td></tr>
+                        <tr><th>Account</th><td th:text="${c.accountId}"></td></tr>
+                        <tr><th>Merchant</th><td th:text="${c.merchantId} + ' (' + ${c.merchantCategory} + ')'"></td></tr>
+                        <tr><th>Route</th><td th:text="${c.customerCountry} + ' → ' + ${c.merchantCountry}"></td></tr>
+                        <tr><th>Channel</th><td th:text="${c.channel}"></td></tr>
+                        <tr><th>Reason</th><td th:text="${@fmt.enumLabel(c.disputeReason)}"></td></tr>
+                    </table>
+                    <div th:if="${c.customerNarrative}" class="mt-2">
+                        <div class="text-muted small">Customer narrative</div>
+                        <div class="border rounded p-2 bg-light" th:text="${c.customerNarrative}"></div>
+                    </div>
+                    <div th:if="${c.status.name() == 'RESOLVED'}" class="mt-2 alert alert-success mb-0">
+                        <strong>Resolved:</strong>
+                        <span th:text="${@fmt.enumLabel(c.finalAction)}"></span>
+                        by <span th:text="${c.assignedReviewer}"></span>
+                        <div class="small" th:text="${c.resolutionNotes}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EVIDENCE -->
+            <div class="card">
+                <div class="card-header">Deterministic Evidence <span class="badge bg-secondary" th:text="${#lists.size(evidence)}"></span></div>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0 align-middle">
+                        <thead><tr><th>Tool</th><th>Risk</th><th>Finding</th></tr></thead>
+                        <tbody>
+                        <tr th:each="e : ${evidence}">
+                            <td class="font-monospace small" th:text="${e.toolName}"></td>
+                            <td><span class="badge" th:classappend="${@fmt.riskBadge(e.riskContribution)}"
+                                      th:text="${e.riskContribution}"></span></td>
+                            <td>
+                                <div th:text="${e.summary}"></div>
+                                <div class="evidence-details" th:text="${e.details}"></div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <!-- ASSESSMENT -->
+            <div class="card mb-3" th:if="${assessment != null}">
+                <div class="card-header d-flex justify-content-between">
+                    <span>Agent Recommendation</span>
+                    <span class="badge bg-dark" th:text="${assessment.processorUsed}"></span>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="display-5 mb-0" th:classappend="${assessment.riskScore >= 70 ? 'text-danger' : (assessment.riskScore >= 35 ? 'text-warning' : 'text-success')}"
+                             th:text="${assessment.riskScore}">0</div>
+                        <div class="flex-grow-1">
+                            <div class="progress risk-bar">
+                                <div class="progress-bar" th:classappend="${@fmt.riskBarClass(assessment.riskScore)}"
+                                     th:style="'width:' + ${assessment.riskScore} + '%'"></div>
+                            </div>
+                            <div class="small text-muted mt-1">
+                                Risk level: <strong th:text="${assessment.riskLevel}"></strong>
+                            </div>
+                        </div>
+                        <span class="badge fs-6" th:classappend="${@fmt.riskBadge(assessment.riskScore)}"
+                              th:text="${@fmt.enumLabel(assessment.recommendedAction)}"></span>
+                    </div>
+                    <p th:text="${assessment.rationale}"></p>
+                    <div class="mb-3">
+                        <div class="text-muted small">Key factors</div>
+                        <ul class="mb-0">
+                            <li th:each="f : ${assessment.keyFactors}" th:text="${f}"></li>
+                        </ul>
+                    </div>
+                    <div th:if="${!#lists.isEmpty(assessment.policyCitations)}">
+                        <div class="text-muted small">Policy citations (exact excerpts)</div>
+                        <div th:each="cit : ${assessment.policyCitations}" class="border rounded p-2 mb-2">
+                            <div class="d-flex justify-content-between">
+                                <strong><span th:text="${cit.documentId}"></span> —
+                                    <span th:text="${cit.documentTitle}"></span></strong>
+                                <span class="badge bg-light text-dark" th:text="${cit.section}"></span>
+                            </div>
+                            <div class="policy-excerpt text-muted" th:text="${cit.excerpt}"></div>
+                        </div>
+                    </div>
+                    <div class="small text-muted">
+                        History: <span th:text="${#lists.size(assessmentHistory)}"></span> assessment(s) recorded.
+                    </div>
+                </div>
+            </div>
+
+            <!-- HUMAN REVIEW -->
+            <div class="card mb-3" th:if="${c.status.name() == 'PENDING_REVIEW' or c.status.name() == 'MORE_INFO_REQUESTED'}">
+                <div class="card-header">Human Review Decision</div>
+                <div class="card-body">
+                    <form method="post" th:action="@{/review/{id}(id=${c.id})}">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Reviewer ID *</label>
+                                <input class="form-control" name="reviewerId" placeholder="analyst.jane" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Decision *</label>
+                                <select class="form-select" name="decision" required>
+                                    <option value="APPROVE_RECOMMENDATION">Approve recommendation</option>
+                                    <option value="OVERRIDE_RECOMMENDATION">Override recommendation</option>
+                                    <option value="REQUEST_MORE_INFORMATION">Request more information</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Final action (required for override)</label>
+                                <select class="form-select" name="finalAction">
+                                    <option value="">—</option>
+                                    <option th:each="a : ${actions}" th:value="${a.name()}"
+                                            th:text="${@fmt.enumLabel(a)}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Justification</label>
+                                <input class="form-control" name="justification"
+                                       placeholder="Mandatory for override / info request">
+                            </div>
+                        </div>
+                        <button class="btn btn-warning mt-3">Record Decision</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- REVIEW HISTORY -->
+            <div class="card mb-3" th:if="${!#lists.isEmpty(reviews)}">
+                <div class="card-header">Review History</div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item" th:each="r : ${reviews}">
+                        <strong th:text="${@fmt.enumLabel(r.decision)}"></strong>
+                        by <span th:text="${r.reviewerId}"></span>
+                        <span th:if="${r.finalAction}" th:text="' → ' + ${@fmt.enumLabel(r.finalAction)}"></span>
+                        <div class="small text-muted" th:text="${@fmt.instant(r.createdAt)}"></div>
+                        <div class="small" th:text="${r.justification}"></div>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- AGENT TRANSCRIPT -->
+            <div class="card mb-3" th:if="${!#lists.isEmpty(transcript)}">
+                <div class="card-header">Agent Conversation (case-isolated memory)</div>
+                <div class="card-body">
+                    <div th:each="m : ${transcript}" class="mb-2">
+                        <span class="badge" th:classappend="${m.role == 'USER' ? 'bg-primary' : 'bg-secondary'}"
+                              th:text="${m.role}"></span>
+                        <div class="transcript-msg border rounded p-2 mt-1 bg-light" th:text="${m.content}"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AUDIT TRAIL -->
+            <div class="card">
+                <div class="card-header">Append-only Audit Trail</div>
+                <div class="card-body">
+                    <div class="audit-timeline">
+                        <div class="audit-event" th:each="a : ${audit}">
+                            <strong th:text="${a.eventType}"></strong>
+                            <span class="badge bg-light text-dark" th:text="${a.actor}"></span>
+                            <div class="small text-muted" th:text="${@fmt.instant(a.occurredAt)}"></div>
+                            <div class="small" th:text="${a.details}"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script th:replace="~{fragments/nav :: scripts}"></script>
+</body>
+</html>

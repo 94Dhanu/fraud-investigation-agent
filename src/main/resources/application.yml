@@ -1,0 +1,54 @@
+spring:
+  application:
+    name: fraud-investigation-agent
+  datasource:
+    # Default: embedded H2 so the project runs with zero setup.
+    # Use the `postgres` Spring profile for PostgreSQL.
+    url: ${DB_URL:jdbc:h2:mem:fraudagent;DB_CLOSE_DELAY=-1;MODE=PostgreSQL}
+    username: ${DB_USER:sa}
+    password: ${DB_PASSWORD:}
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  ai:
+    # Set FRAUD_AI_MODEL=openai and OPENAI_API_KEY to enable the LLM-backed agent.
+    # `none` disables chat-model auto-configuration; the rules processor is used.
+    model:
+      chat: ${FRAUD_AI_MODEL:none}
+      # All non-chat OpenAI model types disabled — only the chat agent uses the API
+      embedding: none
+      image: none
+      moderation: none
+      audio:
+        speech: none
+        transcription: none
+    openai:
+      api-key: ${OPENAI_API_KEY:not-configured}
+      chat:
+        options:
+          model: ${OPENAI_MODEL:gpt-4o-mini}
+          temperature: 0.1
+
+fraud:
+  agent:
+    # ai = LLM-backed agent (with automatic rules fallback), rules = deterministic engine
+    mode: ${FRAUD_AGENT_MODE:rules}
+    risk-thresholds:
+      # score = strength of corroborating evidence that the charge was fraudulent
+      deny-below: 35
+      escalate-at-or-above: 70
+  rag:
+    top-k: 4
+
+server:
+  port: ${PORT:8080}
+
+logging:
+  level:
+    com.fraudagent: INFO

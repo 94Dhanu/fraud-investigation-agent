@@ -1,0 +1,11 @@
+package com.fraudagent.domain.model;
+
+public enum DisputeReason {
+    UNAUTHORIZED_TRANSACTION,
+    CARD_NOT_PRESENT_FRAUD,
+    CARD_LOST_OR_STOLEN,
+    COUNTERFEIT_CARD,
+    ACCOUNT_TAKEOVER,
+    FIRST_PARTY_FRAUD_CLAIM,
+    MERCHANT_ERROR
+}
